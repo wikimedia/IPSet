@@ -12,7 +12,7 @@ $ipset = new IPSet( array(
     '208.80.154.0/26',
     '2620:0:861:1::/64',
     '10.64.0.0/22',
-);
+) );
 
 // Runtime check against cached set (returns bool):
 if ( $ipset->match( $ip ) ) {
