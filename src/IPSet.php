@@ -223,10 +223,8 @@ class IPSet {
 		if ( $node[1] !== false && $node[1] !== true && self::recOptimize( $node[1] ) ) {
 			$node[1] = true;
 		}
-		if ( $node[0] === true && $node[1] === true ) {
-			return true;
-		}
-		return false;
+
+		return $node[0] === true && $node[1] === true;
 	}
 
 	/**
