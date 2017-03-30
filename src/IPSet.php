@@ -185,8 +185,8 @@ class IPSet {
 			}
 			$node =& $node[$index];
 			++$curBit;
-		}
-	}
+		} // Unreachable outside 'while'
+	} // @codeCoverageIgnore
 
 	/**
 	 * Match an IP address against the set

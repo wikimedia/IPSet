@@ -258,6 +258,19 @@ class IPSetTest extends \PHPUnit_Framework_TestCase {
 					'ffff:ffff:ffff:ffff:ffff:ffff:fe02:0' => false,
 				),
 			),
+			'overlap' => array(
+				array(
+					// @covers addCidr "already added a larger supernet"
+					'10.10.10.0/25',
+					'10.10.10.0/26',
+				),
+				array(
+					'0.0.0.0' => false,
+					'10.10.10.0' => true,
+					'10.10.10.1' => true,
+					'255.255.255.255' => false,
+				),
+			),
 		);
 		foreach ( $testcases as $desc => $pairs ) {
 			$testcases[$desc] = array(
@@ -280,5 +293,43 @@ class IPSetTest extends \PHPUnit_Framework_TestCase {
 			$result = $ipset->match( $ip );
 			$this->assertEquals( $expected, $result, "Incorrect match() result for $ip in dataset $desc" );
 		}
+	}
+
+	public static function provideBadIPSets() {
+		return array(
+			'bad mask ipv4' => array( '0.0.0.0/33' ),
+			'bad mask ipv6' => array( '2620:0:861:1::/129' ),
+			'inet fail' => array( '0af.0af' ),
+		);
+	}
+
+	/**
+	 * @expectedException PHPUnit_Framework_Error_Warning
+	 * @dataProvider provideBadIPSets
+	 */
+	public function testAddCidrWarning( $cidr ) {
+		// 1. Ignoring errors to reach the otherwise unreachable 'return'.
+		//    https://github.com/sebastianbergmann/php-code-coverage/issues/513
+		// @codingStandardsIgnoreLine Generic.PHP.NoSilencedErrors
+		$ipset = @new IPSet( array( $cidr ) );
+		// 2. Catches error as exception
+		$ipset = new IPSet( array( $cidr ) );
+	}
+
+	public static function provideBadMatches() {
+		return array(
+			'inet fail' => array( '0af.0af', false ),
+		);
+	}
+
+	/**
+	 * @expectedException PHPUnit_Framework_Error_Warning
+	 * @dataProvider provideBadMatches
+	 */
+	public function testMatchWarning( $ip, $expected ) {
+		$ipset = new IPSet( array() );
+		// @codingStandardsIgnoreLine Generic.PHP.NoSilencedErrors
+		$this->assertEquals( $expected, @$ipset->match( $ip ) );
+		$ipset->match( $ip );
 	}
 }

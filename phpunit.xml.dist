@@ -1,6 +1,7 @@
 <phpunit colors="true"
 	beStrictAboutTestsThatDoNotTestAnything="true"
-	beStrictAboutOutputDuringTests="true">
+	beStrictAboutOutputDuringTests="true"
+	convertErrorsToExceptions="true">
 	<testsuites>
 		<testsuite name="IPSet Tests">
 			<directory>./tests</directory>
