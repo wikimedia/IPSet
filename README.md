@@ -7,6 +7,7 @@ specifications.
 Here is how you use it:
 
 <pre lang="php">
+use Wikimedia\IPSet;
 // At startup, calculate the optimized data structure for the set:
 $ipset = new IPSet( [
     '208.80.154.0/26',
