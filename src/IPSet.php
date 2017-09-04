@@ -28,11 +28,11 @@ namespace IPSet;
  * Usage:
  *
  *     // At startup, calculate the optimized data structure for the set:
- *     $ipset = new IPSet( array(
+ *     $ipset = new IPSet( [
  *         '208.80.154.0/26',
  *         '2620:0:861:1::/64',
  *         '10.64.0.0/22',
- *     ) );
+ *     ] );
  *
  *     // Runtime check against cached set (returns bool):
  *     $allowme = $ipset->match( $ip );
@@ -65,16 +65,16 @@ namespace IPSet;
  *
  * The v4 tree would look like:
  *
- *     root4 => array(
+ *     root4 => [
  *         'comp' => 25,
- *         'next' => array(
+ *         'next' => [
  *             0 => true,
- *             1 => array(
+ *             1 => [
  *                 0 => false,
  *                 1 => true,
- *             ),
- *         ),
- *     );
+ *             ],
+ *         ],
+ *     ];
  *
  * (multi-byte compression nodes were attempted as well, but were
  * a net loss in my test scenarios due to additional match complexity)
