@@ -1,7 +1,7 @@
 {
 	"name": "wikimedia/ip-set",
 	"description": "Efficiently match IP addresses against a set of CIDR specifications.",
-	"license": "GPL-2.0+",
+	"license": "GPL-2.0-or-later",
 	"homepage": "https://github.com/wikimedia/IPSet",
 	"authors": [
 		{
