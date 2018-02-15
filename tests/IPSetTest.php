@@ -27,7 +27,7 @@ use Wikimedia\IPSet;
 /**
  * @group IPSet
  */
-class IPSetTest extends \PHPUnit_Framework_TestCase {
+class IPSetTest extends \PHPUnit\Framework\TestCase {
 
 	/**
 	 * Provides test cases for IPSetTest::testIPSet
