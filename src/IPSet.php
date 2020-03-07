@@ -47,7 +47,7 @@ use Wikimedia\AtEase\AtEase;
  * much larger.
  *
  * For mixed-family CIDR sets, however, this code gives well over
- * 100x speedup vs iterating IP::isInRange() over an array
+ * 100x speedup vs iterating Wikimedia\IPUtils::isInRange() over an array
  * of CIDR specs.
  *
  * The basic implementation is two separate binary trees
