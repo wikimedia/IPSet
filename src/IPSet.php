@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright 2014, 2015 Brandon Black <blblack@gmail.com>
  *
@@ -20,6 +21,7 @@
  * @file
  * @author Brandon Black <blblack@gmail.com>
  */
+
 namespace Wikimedia;
 
 use Wikimedia\AtEase\AtEase;
@@ -82,7 +84,8 @@ use Wikimedia\AtEase\AtEase;
  * (multi-byte compression nodes were attempted as well, but were
  * a net loss in my test scenarios due to additional match complexity)
  */
-class IPSet {
+class IPSet
+{
 	/** @var array|bool The root of the IPv4 matching tree */
 	private $root4 = false;
 
@@ -97,9 +100,10 @@ class IPSet {
 	 *
 	 * @param array $cfg Array of IPv[46] CIDR specs as strings
 	 */
-	public function __construct( array $cfg ) {
-		foreach ( $cfg as $cidr ) {
-			$this->addCidr( $cidr );
+	public function __construct(array $cfg)
+	{
+		foreach ($cfg as $cidr) {
+			$this->addCidr($cidr);
 		}
 	}
 
@@ -109,85 +113,86 @@ class IPSet {
 	 * @param string $cidr String CIDR spec, IPv[46], optional /mask (def all-1's)
 	 * @return false|null Returns null on success, false on failure
 	 */
-	private function addCidr( $cidr ) {
+	private function addCidr($cidr)
+	{
 		// v4 or v6 check
-		if ( strpos( $cidr, ':' ) === false ) {
-			$node =& $this->root4;
+		if (strpos($cidr, ':') === false) {
+			$node = &$this->root4;
 			$defMask = '32';
 		} else {
-			$node =& $this->root6;
+			$node = &$this->root6;
 			$defMask = '128';
 		}
 
 		// Default to all-1's mask if no netmask in the input
-		if ( strpos( $cidr, '/' ) === false ) {
+		if (strpos($cidr, '/') === false) {
 			$net = $cidr;
 			$mask = $defMask;
 		} else {
-			list( $net, $mask ) = explode( '/', $cidr, 2 );
-			if ( !ctype_digit( $mask ) || intval( $mask ) > $defMask ) {
-				trigger_error( "IPSet: Bad mask '$mask' from '$cidr', ignored", E_USER_WARNING );
+			list($net, $mask) = explode('/', $cidr, 2);
+			if (!ctype_digit($mask) || intval($mask) > $defMask) {
+				trigger_error("IPSet: Bad mask '$mask' from '$cidr', ignored", E_USER_WARNING);
 				return false;
 			}
 		}
-		$mask = intval( $mask ); // explicit integer convert, checked above
+		$mask = intval($mask); // explicit integer convert, checked above
 
 		// convert $net to an array of integer bytes, length 4 or 16:
-		$raw = AtEase::quietCall( 'inet_pton', $net );
-		if ( $raw === false ) {
+		$raw = AtEase::quietCall('inet_pton', $net);
+		if ($raw === false) {
 			return false;
 		}
-		$rawOrd = array_map( 'ord', str_split( $raw ) );
+		$rawOrd = array_map('ord', str_split($raw));
 
 		// iterate the bits of the address while walking the tree structure for inserts
 		// at the end, $snode will point to the highest node that could only lead to a
 		// successful match (and thus can be set to true)
-		$snode =& $node;
+		$snode = &$node;
 		$curBit = 0;
-		while ( 1 ) {
-			if ( $node === true ) {
+		while (1) {
+			if ($node === true) {
 				// already added a larger supernet, no need to go deeper
 				return;
-			} elseif ( $curBit == $mask ) {
+			} elseif ($curBit == $mask) {
 				// this may wipe out deeper subnets from earlier
 				$snode = true;
 				return;
-			} elseif ( $node === false ) {
+			} elseif ($node === false) {
 				// create new subarray to go deeper
-				if ( !( $curBit & 7 ) && $curBit <= $mask - 8 ) {
-					$node = [ 'comp' => $rawOrd[$curBit >> 3], 'next' => false ];
+				if (!($curBit & 7) && $curBit <= $mask - 8) {
+					$node = ['comp' => $rawOrd[$curBit >> 3], 'next' => false];
 				} else {
-					$node = [ false, false ];
+					$node = [false, false];
 				}
 			}
 
-			if ( isset( $node['comp'] ) ) {
+			if (isset($node['comp'])) {
 				$comp = $node['comp'];
-				if ( $rawOrd[$curBit >> 3] == $comp && $curBit <= $mask - 8 ) {
+				if ($rawOrd[$curBit >> 3] == $comp && $curBit <= $mask - 8) {
 					// whole byte matches, skip over the compressed node
-					$node =& $node['next'];
-					$snode =& $node;
+					$node = &$node['next'];
+					$snode = &$node;
 					$curBit += 8;
 					continue;
 				} else {
 					// have to decompress the node and check individual bits
 					$unode = $node['next'];
-					for ( $i = 0; $i < 8; ++$i ) {
-						$unode = ( $comp & ( 1 << $i ) )
-							? [ false, $unode ]
-							: [ $unode, false ];
+					for ($i = 0; $i < 8; ++$i) {
+						$unode = ($comp & (1 << $i))
+							? [false, $unode]
+							: [$unode, false];
 					}
 					$node = $unode;
 				}
 			}
 
-			$maskShift = 7 - ( $curBit & 7 );
-			$index = ( $rawOrd[$curBit >> 3] & ( 1 << $maskShift ) ) >> $maskShift;
-			if ( $node[$index ^ 1] !== true ) {
+			$maskShift = 7 - ($curBit & 7);
+			$index = ($rawOrd[$curBit >> 3] & (1 << $maskShift)) >> $maskShift;
+			if ($node[$index ^ 1] !== true) {
 				// no adjacent subnet, can't form a supernet at this level
-				$snode =& $node[$index];
+				$snode = &$node[$index];
 			}
-			$node =& $node[$index];
+			$node = &$node[$index];
 			++$curBit;
 		} // Unreachable outside 'while'
 	} // @codeCoverageIgnore
@@ -200,32 +205,33 @@ class IPSet {
 	 * @param string $ip string IPv[46] address
 	 * @return bool True is match success, false is match failure
 	 */
-	public function match( $ip ) {
-		$raw = AtEase::quietCall( 'inet_pton', $ip );
-		if ( $raw === false ) {
+	public function match($ip)
+	{
+		$raw = AtEase::quietCall('inet_pton', $ip);
+		if ($raw === false) {
 			return false;
 		}
 
-		$rawOrd = array_map( 'ord', str_split( $raw ) );
-		if ( count( $rawOrd ) == 4 ) {
-			$node =& $this->root4;
+		$rawOrd = array_map('ord', str_split($raw));
+		if (count($rawOrd) == 4) {
+			$node = &$this->root4;
 		} else {
-			$node =& $this->root6;
+			$node = &$this->root6;
 		}
 
 		$curBit = 0;
-		while ( $node !== true && $node !== false ) {
-			if ( isset( $node['comp'] ) ) {
+		while ($node !== true && $node !== false) {
+			if (isset($node['comp'])) {
 				// compressed node, matches 1 whole byte on a byte boundary
-				if ( $rawOrd[$curBit >> 3] != $node['comp'] ) {
+				if ($rawOrd[$curBit >> 3] != $node['comp']) {
 					return false;
 				}
 				$curBit += 8;
-				$node =& $node['next'];
+				$node = &$node['next'];
 			} else {
 				// uncompressed node, walk in the correct direction for the current bit-value
-				$maskShift = 7 - ( $curBit & 7 );
-				$node =& $node[( $rawOrd[$curBit >> 3] & ( 1 << $maskShift ) ) >> $maskShift];
+				$maskShift = 7 - ($curBit & 7);
+				$node = &$node[($rawOrd[$curBit >> 3] & (1 << $maskShift)) >> $maskShift];
 				++$curBit;
 			}
 		}
