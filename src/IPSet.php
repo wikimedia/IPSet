@@ -108,6 +108,26 @@ class IPSet
 	}
 
 	/**
+	 * Get root4 private variable - root of the IPv4 matching tree
+	 *
+	 * @return array|bool The root of the IPv4 matching tree
+	 */
+	public function getRoot4()
+	{
+		return $this->root4;
+	}
+
+	/**
+	 * Get root6 private variable - root of the IPv6 matching tree
+	 *
+	 * @return array|bool The root of the IPv6 matching tree
+	 */
+	public function getRoot6()
+	{
+		return $this->root6;
+	}
+
+	/**
 	 * Add a single CIDR spec to the internal matching trees
 	 *
 	 * @param string $cidr String CIDR spec, IPv[46], optional /mask (def all-1's)
