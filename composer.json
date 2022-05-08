@@ -15,6 +15,7 @@
 		}
 	},
 	"require": {
+		"ext-ctype": "*",
 		"php": ">=7.2.9",
 		"wikimedia/at-ease": "^2.0.0"
 	},
