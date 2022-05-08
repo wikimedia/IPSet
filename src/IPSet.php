@@ -194,10 +194,8 @@ class IPSet {
 			}
 			$node =& $node[$index];
 			++$curBit;
-			// @codeCoverageIgnoreStart
 		}
-		// @codeCoverageIgnoreEnd
-	}
+	} // @codeCoverageIgnore
 
 	/**
 	 * Match an IP address against the set
