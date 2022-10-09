@@ -17,7 +17,7 @@
 	"require": {
 		"ext-ctype": "*",
 		"ext-json": "*",
-		"php": ">=7.2.9",
+		"php": ">=7.4.3",
 		"wikimedia/at-ease": "^2.0.0"
 	},
 	"require-dev": {
