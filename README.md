@@ -1,68 +1,14 @@
 IPSet
 =====
 
-IPSet is a PHP library for matching IP addresses against a set of CIDR
-specifications.
+IPSet is a PHP class for matching IP addresses against a set of CIDR
+specifications. It was extracted from MediaWiki core in 2014,
+and moved to the [wikimedia/ip-utils](https://packagist.org/packages/wikimedia/ip-utils)
+package in 2023.
 
-Here is how you use it:
+**Replace use of `wikimedia/ip-set` with `wikimedia/ip-utils` 5.0.0 or later**.
 
-<pre lang="php">
-use Wikimedia\IPSet;
-// At startup, calculate the optimized data structure for the set:
-$ipset = new IPSet( [
-    '208.80.154.0/26',
-    '2620:0:861:1::/64',
-    '10.64.0.0/22',
-] );
-
-// Runtime check against cached set (returns bool):
-if ( $ipset->match( $ip ) ) {
-    // ...
-}
-</pre>
-
-In rough benchmarking, this takes about 80% more time than `in_array()` checks
-on a short (a couple hundred at most) array of addresses.  It's fast either way
-at those levels, though, and IPSet would scale better than in_array if the
-array were much larger.
-
-For mixed-family CIDR sets, however, this code gives well over 100x speedup vs
-iterating `Wikimedia\IPUtils::isInRange()` over an array of CIDR specs.
-
-The basic implementation is two separate binary trees (IPv4 and IPv6) as nested
-php arrays with keys named 0 and 1.  The values false and true are terminal
-match-fail and match-success, otherwise the value is a deeper node in the tree.
-
-A simple depth-compression scheme is also implemented: whole-byte tree
-compression at whole-byte boundaries only, where no branching occurs during
-that whole byte of depth.  A compressed node has keys 'comp' (the byte to
-compare) and 'next' (the next node to recurse into if 'comp' matched successfully).
-
-For example, given these inputs:
-
-<pre>
-25.0.0.0/9
-25.192.0.0/10
-</pre>
-
-The v4 tree would look like:
-
-<pre lang="php">
-root4 => [
-    'comp' => 25,
-    'next' => [
-        0 => true,
-        1 => [
-            0 => false,
-            1 => true,
-        ],
-    ],
-];
-</pre>
-
-(multi-byte compression nodes were attempted as well, but were
-a net loss in my test scenarios due to additional match complexity)
-
+-----
 
 License
 -------
